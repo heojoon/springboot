@@ -32,7 +32,7 @@ if [ Z != Z$2 ];then
         JAR_FILE="$2"
 fi
 
-echo "JAR_FILE : $(cat ${RUN_JAR_FILE})"
+[ -e ${RUN_JAR_FILE} ] && echo "JAR_FILE : $(cat ${RUN_JAR_FILE})"
 
 userchk()
 {
@@ -45,6 +45,7 @@ userchk()
 get_status()
 {
     # if JAR_FILE is global JAR_FILE
+    [ -e ${RUN_JAR_FILE} ] && JAR_FILE="$(cat ${RUN_JAR_FILE})"
     ps ux | grep ${JAR_FILE} | grep -v $0 | grep -v grep | awk '{print $2}'
 
     # if JAR_FILE is stdin JAR_FILE (grepping YYmmddHHSS pattern)
@@ -72,6 +73,7 @@ start()
             echo "${PROC_NAME} is start ... [Failed]"
             exit 1
         else
+            echo "JAR_FILE : ${JAR_FILE}"
             echo "${PROC_NAME} is start ... [OK]"
             local PID=$(get_status)
             echo ${PID} > ${PROC_PID_FILE}
@@ -96,10 +98,10 @@ stop()
         echo "${PROC_NAME} was not running."
     else
         kill ${PID}
-        rm -f ${PROC_PID_FILE}
-        rm -f ${RUN_JAR_FILE}
         if [ $(status) -eq 0 ];then
                 echo "${PROC_NAME} is shutdown ... [OK]"
+                rm -f ${PROC_PID_FILE}
+                rm -f ${RUN_JAR_FILE}
         else
                 echo "${PROC_NAME} is shutdown ... [Failed]"
         fi
